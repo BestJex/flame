@@ -2,17 +2,19 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart' hide WidgetBuilder;
+import 'package:flutter/widgets.dart' hide WidgetBuilder, Viewport;
 import 'package:ordered_set/comparing.dart';
 import 'package:ordered_set/ordered_set.dart';
 
+import '../../extensions.dart';
 import '../components/component.dart';
 import '../components/mixins/has_game_ref.dart';
 import '../components/mixins/tapable.dart';
 import '../components/position_component.dart';
-import '../extensions/vector2.dart';
 import '../fps_counter.dart';
+import 'camera.dart';
 import 'game.dart';
+import 'viewport.dart';
 
 /// This is a more complete and opinionated implementation of Game.
 ///
@@ -32,7 +34,12 @@ class BaseGame extends Game with FPSCounter {
   final Set<Component> _removeLater = {};
 
   /// Camera position; every non-HUD component is translated so that the camera position is the top-left corner of the screen.
-  Vector2 camera = Vector2.zero();
+  final Camera camera = Camera();
+  Viewport viewport = DefaultViewport();
+
+  BaseGame() {
+    camera.gameRef = this;
+  }
 
   /// This method is called for every component added.
   /// It does preparation on a component before any update or render method is called on it.
@@ -112,7 +119,7 @@ class BaseGame extends Game with FPSCounter {
   /// This makes sure the canvas is not messed up by one component and all components render independently.
   void renderComponent(Canvas canvas, Component c) {
     if (!c.isHud) {
-      canvas.translate(-camera.x, -camera.y);
+      canvas.translateVector(-camera.position);
     }
     c.render(canvas);
     canvas.restore();
