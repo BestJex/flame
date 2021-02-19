@@ -37,6 +37,17 @@ class BaseGame extends Game with FPSCounter {
   final Camera camera = Camera();
   Viewport viewport = DefaultViewport();
 
+  /// On the base game, this is overwritten to consider the viewport.
+  ///
+  /// This means that this is the logical size of the game screen area as
+  /// exposed to the canvas after viewport transformations.
+  /// This does not match the Flutter widget size; for that see [rawSize].
+  @override
+  Vector2 get size => viewport.getEffectiveSize();
+
+  /// This is the original Flutter widget size, without any transformation.
+  Vector2 get rawSize => viewport.getRawSize();
+
   BaseGame() {
     camera.gameRef = this;
   }
@@ -108,9 +119,9 @@ class BaseGame extends Game with FPSCounter {
   @override
   @mustCallSuper
   void render(Canvas canvas) {
-    canvas.save();
-    components.forEach((comp) => renderComponent(canvas, comp));
-    canvas.restore();
+    viewport.render(canvas, (c) {
+      components.forEach((comp) => renderComponent(canvas, comp));
+    });
   }
 
   /// This renders a single component obeying BaseGame rules.
@@ -155,8 +166,9 @@ class BaseGame extends Game with FPSCounter {
   /// You can override it further to add more custom behavior, but you should seriously consider calling the super implementation as well.
   @override
   @mustCallSuper
-  void onResize(Vector2 size) {
-    super.onResize(size);
+  void onResize(Vector2 rawSize) {
+    super.onResize(rawSize);
+    viewport.resize(rawSize);
     components.forEach((c) => c.onGameResize(size));
   }
 
