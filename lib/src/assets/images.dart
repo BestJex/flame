@@ -83,7 +83,7 @@ class Images {
   }
 
   Future<Image> _fetchToMemory(String name) async {
-    final ByteData data = await Flame.bundle.load('assets/images/' + name);
+    final ByteData data = await Flame.bundle.load('assets/images/$name');
     final Uint8List bytes = Uint8List.view(data.buffer);
     return _loadBytes(bytes);
   }
